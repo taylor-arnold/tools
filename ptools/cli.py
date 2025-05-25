@@ -326,8 +326,8 @@ def bsync(ctx: click.Context, task: str, filename: str) -> None:
             raise click.ClickException("Must be in a subdirectory of /Users/admin/data")
         
         # Calculate remote path
-        relative_path = cwd[14:]  # Remove "/Users/admin" prefix
-        remote_file_path = f"/home{relative_path}/{filename}"
+        relative_path = cwd[13:]  # Remove "/Users/admin" prefix
+        remote_file_path = f"/home/{relative_path}/{filename}"
         
         cmd = [
             "rsync", "--progress",
@@ -347,8 +347,8 @@ def bsync(ctx: click.Context, task: str, filename: str) -> None:
             raise click.ClickException("Must be in a subdirectory of /Users/admin/data")
         
         # Calculate remote path
-        relative_path = cwd[14:]  # Remove "/Users/admin" prefix
-        remote_dir_path = f"/home{relative_path}/"
+        relative_path = cwd[13:]  # Remove "/Users/admin" prefix
+        remote_dir_path = f"/home/{relative_path}/"
         
         cmd = [
             "ssh", f"-p{ssh_port}", server,
