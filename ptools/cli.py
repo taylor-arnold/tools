@@ -7,6 +7,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+import bibtexparser
+from bibtexparser.bwriter import BibTexWriter
+from bibtexparser.customization import convert_to_unicode
 import click
 import colorama
 from colorama import Fore, Style
@@ -182,105 +185,16 @@ def texcount(ctx: click.Context, tex_file: Path) -> None:
         raise click.ClickException("texcount command not found. Please install texcount.")
 
 
-def format_bib_entry(entry: str) -> str:
-    """Format a single bibliography entry with consistent style."""
-    lines = entry.strip().split('\n')
-    if not lines:
-        return entry
+class CustomBibTexWriter(BibTexWriter):
+    """Custom BibTeX writer with consistent formatting."""
     
-    # Parse the first line to get entry type and key
-    first_line = lines[0].strip()
-    if not first_line.startswith('@'):
-        return entry
-    
-    # Extract entry type and citation key
-    match = re.match(r'@(\w+)\s*\{\s*([^,\s\}]+)\s*,?', first_line)
-    if not match:
-        return entry
-    
-    entry_type = match.group(1).lower()
-    citation_key = match.group(2)
-    
-    # Start building the formatted entry - entry type and citation key on same line
-    formatted_lines = [f"@{entry_type}" + "{" + citation_key + ","]
-    
-    # Collect all fields
-    fields = []
-    current_field = ""
-    in_field = False
-    brace_count = 0
-    
-    # Process all lines to extract fields
-    for i, line in enumerate(lines):
-        if i == 0:  # Skip the first line (entry type)
-            continue
-            
-        stripped = line.strip()
-        if not stripped or stripped == '}':
-            if current_field.strip():
-                fields.append(current_field.strip())
-                current_field = ""
-            continue
-        
-        # Handle multi-line fields
-        if not in_field and '=' in stripped:
-            # New field starts
-            if current_field.strip():
-                fields.append(current_field.strip())
-            current_field = stripped
-            in_field = True
-            brace_count = stripped.count('{') - stripped.count('}')
-        else:
-            # Continuation of current field
-            current_field += " " + stripped
-            brace_count += stripped.count('{') - stripped.count('}')
-        
-        # Check if field is complete (braces balanced and ends with comma or is last)
-        if in_field and brace_count <= 0 and (stripped.endswith(',') or stripped.endswith('}')):
-            fields.append(current_field.strip())
-            current_field = ""
-            in_field = False
-            brace_count = 0
-    
-    # Add any remaining field
-    if current_field.strip():
-        fields.append(current_field.strip())
-    
-    # Format each field
-    for field in fields:
-        if '=' not in field:
-            continue
-            
-        # Parse field = value
-        field_parts = field.split('=', 1)
-        field_name = field_parts[0].strip()
-        field_value = field_parts[1].strip()
-        
-        # Remove trailing comma if present
-        if field_value.endswith(','):
-            field_value = field_value[:-1].strip()
-        
-        # Convert quotes to curly braces if needed
-        if field_value.startswith('"') and field_value.endswith('"'):
-            field_value = '{' + field_value[1:-1] + '}'
-        elif not (field_value.startswith('{') and field_value.endswith('}')):
-            # If it's not already in braces and not a number, wrap it
-            if not field_value.isdigit():
-                field_value = '{' + field_value + '}'
-        
-        # Format with equals sign in column 16
-        spaces_needed = max(1, 16 - len(field_name) - 1)  # -1 for the space before =
-        formatted_field = f"  {field_name}{' ' * spaces_needed}= {field_value},"
-        formatted_lines.append(formatted_field)
-    
-    # Remove trailing comma from last field
-    if formatted_lines and formatted_lines[-1].endswith(','):
-        formatted_lines[-1] = formatted_lines[-1][:-1]
-    
-    # Close the entry
-    formatted_lines.append("}")
-    
-    return '\n'.join(formatted_lines)
+    def __init__(self):
+        super().__init__()
+        self.indent = '  '
+        self.align_values = True
+        self.order_entries_by = 'id'
+        self.add_trailing_comma = False
+        self.common_strings = []
 
 
 @main.command()
@@ -297,71 +211,22 @@ def bsort(ctx: click.Context, bib_file: Path) -> None:
         raise click.ClickException(f"File must have .bib extension: {bib_file}")
     
     try:
-        # Read the file content
-        content = bib_file.read_text(encoding='utf-8')
+        # Read and parse the bibliography file
+        with open(bib_file, 'r', encoding='utf-8') as bibtex_file:
+            parser = bibtexparser.bparser.BibTexParser()
+            parser.customization = convert_to_unicode
+            bib_database = bibtexparser.load(bibtex_file, parser=parser)
         
-        # Parse bibliography entries
-        entries = []
-        current_entry = []
-        in_entry = False
-        brace_count = 0
+        # Sort entries by citation key (case-insensitive)
+        bib_database.entries.sort(key=lambda entry: entry.get('ID', '').lower())
         
-        for line in content.split('\n'):
-            stripped = line.strip()
-            
-            # Start of new entry
-            if stripped.startswith('@') and not in_entry:
-                if current_entry:
-                    entries.append('\n'.join(current_entry))
-                current_entry = [line]
-                in_entry = True
-                brace_count = line.count('{') - line.count('}')
-            elif in_entry:
-                current_entry.append(line)
-                brace_count += line.count('{') - line.count('}')
-                
-                # End of entry when braces are balanced
-                if brace_count <= 0:
-                    entries.append('\n'.join(current_entry))
-                    current_entry = []
-                    in_entry = False
-                    brace_count = 0
-            elif not stripped and not in_entry:
-                # Preserve empty lines between entries
-                if current_entry:
-                    entries.append('\n'.join(current_entry))
-                    current_entry = []
+        # Write the sorted bibliography back to file
+        writer = CustomBibTexWriter()
+        with open(bib_file, 'w', encoding='utf-8') as bibtex_file:
+            bibtexparser.dump(bib_database, bibtex_file, writer=writer)
         
-        # Add any remaining entry
-        if current_entry:
-            entries.append('\n'.join(current_entry))
-        
-        # Sort entries by citation key (on the first line after formatting)
-        def get_citation_key(entry: str) -> str:
-            lines = entry.split('\n')
-            # After formatting, citation key is on the first line: @type{key,
-            first_line = lines[0].strip()
-            if '{' in first_line:
-                key_part = first_line.split('{', 1)[1]
-                if key_part.endswith(','):
-                    return key_part[:-1].strip().lower()
-                return key_part.strip().lower()
-            return entry.lower()
-        
-        # Filter out empty entries, format, and sort
-        non_empty_entries = [e for e in entries if e.strip()]
-        formatted_entries = [format_bib_entry(entry) for entry in non_empty_entries]
-        sorted_entries = sorted(formatted_entries, key=get_citation_key)
-        
-        # Write back to file
-        sorted_content = '\n\n'.join(sorted_entries)
-        if sorted_content and not sorted_content.endswith('\n'):
-            sorted_content += '\n'
-            
-        bib_file.write_text(sorted_content, encoding='utf-8')
-        
-        logger.info(f"Successfully sorted and formatted {len(sorted_entries)} entries in {bib_file}")
-        click.echo(f"Sorted and formatted {len(sorted_entries)} bibliography entries")
+        logger.info(f"Successfully sorted and formatted {len(bib_database.entries)} entries in {bib_file}")
+        click.echo(f"Sorted and formatted {len(bib_database.entries)} bibliography entries")
         
     except Exception as e:
         logger.error(f"Failed to sort bibliography: {e}")
