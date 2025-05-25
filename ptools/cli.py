@@ -2,6 +2,7 @@
 
 import glob
 import logging
+import os
 import re
 import subprocess
 import sys
@@ -284,6 +285,85 @@ def bsort(ctx: click.Context, bib_file: Path) -> None:
     except Exception as e:
         logger.error(f"Failed to sort bibliography: {e}")
         raise click.ClickException(f"Failed to sort bibliography: {e}")
+
+
+@main.command()
+@click.argument("task", type=click.Choice(["folders", "get", "ssh", "sftp", "list"]))
+@click.argument("filename", required=False)
+@click.pass_context
+def bsync(ctx: click.Context, task: str, filename: str) -> None:
+    """Sync files with remote storage server."""
+    logger = logging.getLogger(__name__)
+    
+    # Server configuration
+    server = "u442013@u442013.your-storagebox.de"
+    ssh_port = "23"
+    sftp_port = "22"
+    
+    logger.info(f"Running task '{task}'")
+    
+    if task == "folders":
+        cmd = [
+            "rsync", "--progress", 
+            "-e", f"ssh -p{ssh_port}",
+            "--recursive", "-av",
+            "-f+ */", "-f- *",
+            f"{server}:/home/data", "/Users/admin/"
+        ]
+        try:
+            subprocess.run(cmd, check=True)
+            logger.info("Successfully synced folder structure")
+        except subprocess.CalledProcessError as e:
+            raise click.ClickException(f"Failed to sync folders: {e}")
+    
+    elif task == "get":
+        if not filename:
+            raise click.ClickException("Filename argument required for 'get' task")
+        
+        # Validate current directory is under /Users/admin/data
+        cwd = os.getcwd()
+        if not cwd.startswith("/Users/admin/data/"):
+            raise click.ClickException("Must be in a subdirectory of /Users/admin/data")
+        
+        # Calculate remote path
+        relative_path = cwd[14:]  # Remove "/Users/admin" prefix
+        remote_file_path = f"/home{relative_path}/{filename}"
+        
+        cmd = [
+            "rsync", "--progress",
+            "-e", f"ssh -p{ssh_port}",
+            f"{server}:{remote_file_path}", "."
+        ]
+        try:
+            subprocess.run(cmd, check=True)
+            logger.info(f"Successfully downloaded {filename}")
+        except subprocess.CalledProcessError as e:
+            raise click.ClickException(f"Failed to download file: {e}")
+    
+    elif task == "list":
+        # Validate current directory is under /Users/admin/data
+        cwd = os.getcwd()
+        if not cwd.startswith("/Users/admin/data/"):
+            raise click.ClickException("Must be in a subdirectory of /Users/admin/data")
+        
+        # Calculate remote path
+        relative_path = cwd[14:]  # Remove "/Users/admin" prefix
+        remote_dir_path = f"/home{relative_path}/"
+        
+        cmd = [
+            "ssh", f"-p{ssh_port}", server,
+            f"ls -lhR {remote_dir_path}"
+        ]
+        try:
+            subprocess.run(cmd, check=True)
+        except subprocess.CalledProcessError as e:
+            raise click.ClickException(f"Failed to list remote directory: {e}")
+    
+    elif task == "ssh":
+        click.echo(f"ssh -p{ssh_port} {server}")
+    
+    elif task == "sftp":
+        click.echo(f"sftp -p{sftp_port} {server}")
 
 
 if __name__ == "__main__":
