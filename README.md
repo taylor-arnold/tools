@@ -32,3 +32,30 @@ directly anywhere on your machine, use the following code:
   export PATH="$HOME/.local/uv-tools/bin:$PATH"
 ```
 
+## Shell Autocompletion
+
+To enable tab completion for `ptools` commands, run:
+
+```bash
+ptools completion
+```
+
+This will show instructions for your shell. For example, with bash:
+
+```bash
+# Add to ~/.bashrc for persistent completion
+eval "$(_PTOOLS_COMPLETE=bash_source ptools)"
+```
+
+Or generate a completion script file:
+
+```bash
+_PTOOLS_COMPLETE=bash_source ptools > ~/.ptools-complete.bash
+echo 'source ~/.ptools-complete.bash' >> ~/.bashrc
+```
+
+After setup, restart your shell and you'll have tab completion for:
+- Command names (`ptools x<TAB>` → `ptools xelatex`)
+- File paths for arguments
+- Option names
+

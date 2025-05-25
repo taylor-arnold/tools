@@ -198,6 +198,59 @@ class CustomBibTexWriter(BibTexWriter):
 
 
 @main.command()
+@click.option(
+    "--shell", 
+    type=click.Choice(["bash", "zsh", "fish"]), 
+    help="Shell type (auto-detected if not specified)"
+)
+@click.pass_context
+def completion(ctx: click.Context, shell: str) -> None:
+    """Generate shell completion script."""
+    import os
+    
+    # Auto-detect shell if not specified
+    if not shell:
+        shell_path = os.environ.get("SHELL", "")
+        if "bash" in shell_path:
+            shell = "bash"
+        elif "zsh" in shell_path:
+            shell = "zsh"
+        elif "fish" in shell_path:
+            shell = "fish"
+        else:
+            raise click.ClickException(
+                "Could not auto-detect shell. Please specify --shell option."
+            )
+    
+    # Generate completion script
+    prog_name = "ptools"
+    
+    if shell == "bash":
+        click.echo(f"# Add this to your ~/.bashrc:")
+        click.echo(f'eval "$(_PTOOLS_COMPLETE=bash_source ptools)"')
+        click.echo()
+        click.echo("# Or generate completion script to a file:")
+        click.echo(f"_PTOOLS_COMPLETE=bash_source ptools > ~/.ptools-complete.bash")
+        click.echo("echo 'source ~/.ptools-complete.bash' >> ~/.bashrc")
+    elif shell == "zsh":
+        click.echo(f"# Add this to your ~/.zshrc:")
+        click.echo(f'eval "$(_PTOOLS_COMPLETE=zsh_source ptools)"')
+        click.echo()
+        click.echo("# Or generate completion script to a file:")
+        click.echo(f"_PTOOLS_COMPLETE=zsh_source ptools > ~/.ptools-complete.zsh")
+        click.echo("echo 'source ~/.ptools-complete.zsh' >> ~/.zshrc")
+    elif shell == "fish":
+        click.echo(f"# Add this to your fish config:")
+        click.echo(f"_PTOOLS_COMPLETE=fish_source ptools | source")
+        click.echo()
+        click.echo("# Or generate completion script to a file:")
+        click.echo(f"_PTOOLS_COMPLETE=fish_source ptools > ~/.config/fish/completions/ptools.fish")
+    
+    click.echo()
+    click.echo("After making changes, restart your shell or source the config file.")
+
+
+@main.command()
 @click.argument("bib_file", type=click.Path(exists=True, path_type=Path))
 @click.pass_context
 def bsort(ctx: click.Context, bib_file: Path) -> None:
