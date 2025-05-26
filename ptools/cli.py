@@ -89,7 +89,7 @@ def run_latex_workflow(tex_file: Path, latex_cmd: str) -> None:
     run_cmd([latex_cmd, "-interaction=nonstopmode", tex_file.name], f"{latex_cmd} (1st pass)")
     run_cmd([latex_cmd, "-interaction=nonstopmode", tex_file.name], f"{latex_cmd} (2nd pass)")
     
-    # Run bibtex if .bib files exist or .aux contains citations
+    # Run biber or bibtex if .bib/.bcf files 
     aux_file = work_dir / f"{base_name}.aux"
     if aux_file.exists():
         aux_content = aux_file.read_text()
@@ -98,12 +98,22 @@ def run_latex_workflow(tex_file: Path, latex_cmd: str) -> None:
             # Run latex twice more after bibtex
             run_cmd([latex_cmd, "-interaction=nonstopmode", tex_file.name], f"{latex_cmd} (3rd pass)")
             run_cmd([latex_cmd, "-interaction=nonstopmode", tex_file.name], f"{latex_cmd} (4th pass)")
+
+        bcf_file = work_dir / f"{base_name}.bcf"
+        if bcf_file.exists():
+            run_cmd(["biber", base_name], "biber")
+            # Run latex twice more after bibtex
+            run_cmd([latex_cmd, "-interaction=nonstopmode", tex_file.name], f"{latex_cmd} (3rd pass)")
+            run_cmd([latex_cmd, "-interaction=nonstopmode", tex_file.name], f"{latex_cmd} (4th pass)")       
+
     
     # Cleanup auxiliary files
     cleanup_patterns = [
         f"{base_name}.aux",
+        f"{base_name}.aux",
         f"{base_name}.log", 
         f"{base_name}.bbl",
+        f"{base_name}.bcf",
         f"{base_name}.blg",
         f"{base_name}.fls",
         f"{base_name}.fdb_latexmk",
@@ -113,6 +123,7 @@ def run_latex_workflow(tex_file: Path, latex_cmd: str) -> None:
         f"{base_name}.lof",
         f"{base_name}.lot",
         f"{base_name}.nav",
+        f"{base_name}.run.xml",
         f"{base_name}.snm",
         f"{base_name}.vrb"
     ]
