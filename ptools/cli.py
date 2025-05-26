@@ -133,7 +133,8 @@ def run_latex_workflow(tex_file: Path, latex_cmd: str) -> None:
             logger.debug(f"Removing {file_path}")
             file_path.unlink(missing_ok=True)
     
-    logger.info(f"Successfully processed {tex_file}")
+    pdf_file = work_dir / f"{base_name}.pdf"
+    logger.info(f"Successfully created {pdf_file.name}")
 
 
 @click.group()
