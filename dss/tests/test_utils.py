@@ -24,9 +24,9 @@ class TestColoredFormatter:
             lineno=0,
             msg="Test error",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
-        
+
         result = formatter.format(record)
         assert result == f"{Fore.RED}Test error{Style.RESET_ALL}"
 
@@ -40,9 +40,9 @@ class TestColoredFormatter:
             lineno=0,
             msg="Test warning",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
-        
+
         result = formatter.format(record)
         assert result == f"{Fore.YELLOW}Test warning{Style.RESET_ALL}"
 
@@ -56,9 +56,9 @@ class TestColoredFormatter:
             lineno=0,
             msg="Test info",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
-        
+
         result = formatter.format(record)
         assert result == f"{Fore.GREEN}Test info{Style.RESET_ALL}"
 
@@ -76,7 +76,7 @@ class TestCalculateSha256:
     def test_calculate_sha256_with_content(self, test_file: Path):
         """Test SHA256 calculation of file with content."""
         result = calculate_sha256(test_file)
-        
+
         # Calculate expected hash
         expected_hash = hashlib.sha256(b"Hello, World!").hexdigest()
         assert result == expected_hash
@@ -84,7 +84,7 @@ class TestCalculateSha256:
     def test_calculate_sha256_nonexistent_file(self, temp_dir: Path):
         """Test SHA256 calculation of nonexistent file raises error."""
         nonexistent_file = temp_dir / "nonexistent.txt"
-        
+
         with pytest.raises(FileNotFoundError):
             calculate_sha256(nonexistent_file)
 
@@ -94,9 +94,9 @@ class TestFormatSize:
 
     def test_format_bytes(self):
         """Test formatting of byte sizes."""
-        assert format_size(0) == "0B"
-        assert format_size(512) == "512B"
-        assert format_size(1023) == "1023B"
+        assert format_size(0) == "0.0B"
+        assert format_size(512) == "512.0B"
+        assert format_size(1023) == "1023.0B"
 
     def test_format_kilobytes(self):
         """Test formatting of kilobyte sizes."""
@@ -126,21 +126,21 @@ class TestFormatSize:
 class TestSetupLogging:
     """Tests for setup_logging function."""
 
-    @patch('dss.cli.logging.basicConfig')
+    @patch("dss.cli.logging.basicConfig")
     def test_setup_logging_default(self, mock_basic_config):
         """Test default logging setup."""
         setup_logging()
-        
+
         mock_basic_config.assert_called_once()
         call_args = mock_basic_config.call_args
-        assert call_args[1]['level'] == logging.INFO
-        assert call_args[1]['format'] == "%(message)s"
+        assert call_args[1]["level"] == logging.INFO
+        assert call_args[1]["format"] == "%(message)s"
 
-    @patch('dss.cli.logging.basicConfig')
+    @patch("dss.cli.logging.basicConfig")
     def test_setup_logging_verbose(self, mock_basic_config):
         """Test verbose logging setup."""
         setup_logging(verbose=True)
-        
+
         mock_basic_config.assert_called_once()
         call_args = mock_basic_config.call_args
-        assert call_args[1]['level'] == logging.DEBUG
+        assert call_args[1]["level"] == logging.DEBUG

@@ -1,9 +1,9 @@
 """Pytest configuration and fixtures for dss tests."""
 
 import tempfile
-import shutil
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator, Dict, Any
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -12,7 +12,7 @@ from click.testing import CliRunner
 
 
 @pytest.fixture
-def temp_dir() -> Generator[Path, None, None]:
+def temp_dir() -> Generator[Path]:
     """Create a temporary directory for tests."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         yield Path(tmp_dir)
@@ -25,7 +25,7 @@ def cli_runner() -> CliRunner:
 
 
 @pytest.fixture
-def sample_manifest_data() -> Dict[str, Any]:
+def sample_manifest_data() -> dict[str, Any]:
     """Sample manifest data for testing."""
     return {
         "version": "1.0",
@@ -36,20 +36,20 @@ def sample_manifest_data() -> Dict[str, Any]:
                 "size_bytes": 0,
                 "size_human": "0B",
                 "uploaded": "2023-01-01T00:00:00Z",
-                "description": "Test file"
+                "description": "Test file",
             }
         },
         "remote@1": {
             "uname": "testuser",
             "url": "test.example.com",
             "base_path": "/data/test",
-            "port": 22
-        }
+            "port": 22,
+        },
     }
 
 
 @pytest.fixture
-def manifest_file(temp_dir: Path, sample_manifest_data: Dict[str, Any]) -> Path:
+def manifest_file(temp_dir: Path, sample_manifest_data: dict[str, Any]) -> Path:
     """Create a test manifest file."""
     manifest_path = temp_dir / "manifest.yml"
     with open(manifest_path, "w") as f:
@@ -93,11 +93,12 @@ def mock_uuid():
 
 
 @pytest.fixture
-def working_directory(temp_dir: Path) -> Generator[Path, None, None]:
+def working_directory(temp_dir: Path) -> Generator[Path]:
     """Change to temporary directory for test duration."""
     original_cwd = Path.cwd()
     try:
         import os
+
         os.chdir(temp_dir)
         yield temp_dir
     finally:

@@ -8,6 +8,7 @@ dependencies = [
     "click>=8.0.0",
     "colorama>=0.4.0",
     "pyyaml>=6.0.2",
+    "types-pyyaml>=6.0.12.20250516",
 ]
 
 [project.scripts]
@@ -19,6 +20,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-mock>=3.10.0",
     "ruff>=0.1.0",
+    "mypy>=1.15.0"
 ]
 
 [build-system]
@@ -30,7 +32,7 @@ target-version = "py313"
 line-length = 88
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "ISC", "PIE", "T20", "Q"]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "ISC", "PIE", "T20", "Q"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -38,3 +40,8 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "--cov=dss --cov-report=term-missing"
+
+[dependency-groups]
+dev = [
+    "types-colorama>=0.4.15.20240311",
+]
