@@ -171,7 +171,8 @@ def init(ctx: click.Context) -> None:
         gitignore_path = Path(".gitignore")
         if not gitignore_path.exists():
             with open(gitignore_path, "w") as f:
-                f.write("manifest.yml\n")
+                f.write("*\n")
+                f.write("!manifest.yml\n")
             click.echo("Created .gitignore with manifest.yml")
         else:
             logging.debug(".gitignore already exists, not modifying")
