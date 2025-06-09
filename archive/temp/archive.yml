@@ -1,0 +1,7 @@
+remote@1:
+  name: hetzner-box
+  uname: u442013
+  url: u442013.your-storagebox.de
+  port: 23
+  base_path: /home/archive/0de96184-6db6-4926-8f6f-d99a3f391380/
+  rel_path: ''
