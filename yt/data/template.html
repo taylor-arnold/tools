@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+
+  <style>
+    /****** reset ***************/
+    html, body, div, span, object, iframe,
+    h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+    abbr, address, cite, code,
+    del, dfn, em, img, ins, kbd, q, samp,
+    small, strong, sub, sup, var,
+    b, i,
+    dl, dt, dd, ol, ul, li,
+    fieldset, form, label, legend,
+    table, caption, tbody, tfoot, thead, tr, th, td,
+    article, aside, canvas, details, figcaption, figure,
+    footer, header, hgroup, menu, nav, section, summary,
+    time, mark, audio, video {
+        margin:0;
+        padding:0;
+        border:0;
+        outline:0;
+        font-size:100%;
+        vertical-align:baseline;
+        background:transparent;
+    }
+
+    html, body {
+      padding: 0;
+      height: 100%;
+    }
+
+    body {
+        line-height:1;
+    }
+
+    article,aside,details,figcaption,figure,
+    footer,header,hgroup,menu,nav,section {
+        display:block;
+    }
+
+    nav ul {
+        list-style:none;
+    }
+
+    blockquote, q {
+        quotes:none;
+    }
+
+    blockquote:before, blockquote:after,
+    q:before, q:after {
+        content:'';
+        content:none;
+    }
+
+    a {
+        margin:0;
+        padding:0;
+        font-size:100%;
+        vertical-align:baseline;
+        background:transparent;
+    }
+
+    ins {
+        background-color:#ff9;
+        color:#000;
+        text-decoration:none;
+    }
+
+    mark {
+        background-color:#ff9;
+        color:#000;
+        font-style:italic;
+        font-weight:bold;
+    }
+
+    del {
+        text-decoration: line-through;
+    }
+
+    abbr[title], dfn[title] {
+        border-bottom:1px dotted;
+        cursor:help;
+    }
+
+    table {
+        border-collapse:collapse;
+        border-spacing:0;
+    }
+
+    /* change border colour to suit your needs */
+    hr {
+        display:block;
+        height:1px;
+        border:0;
+        border-top:1px solid #cccccc;
+        margin:1em 0;
+        padding:0;
+    }
+
+    input, select {
+        vertical-align:middle;
+    }
+
+    /* Custom styles */
+
+    :root {
+      --title-font: Arial, sans-serif;
+      --body-font: brown;
+    }
+
+    body {
+      font-size: min(16px, 2.4vw);
+      font-family: "Fira Sans", serif;
+      background: rgb(245, 245, 250);
+    }
+
+    #conteneur {
+      padding-top: 60px;
+      max-width: 700px;
+      padding-left: 50px;
+      padding-right: 50px;
+      margin: auto;
+      padding-bottom: 50px;
+      color: #222;
+      background: rgb(253, 253, 253);
+    }
+
+    audio {
+      filter: sepia(100%) saturate(100%) grayscale(1) contrast(99%) invert(12%);
+      width: 700px;
+      height: 50px;
+    }
+
+    #audioCon {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      max-width: 700px;
+      color: #222;
+      background: white;
+      padding: 5px;
+    }
+
+    #conteneur p {
+      padding-bottom: 12px;
+      text-align: justify;
+      font-size: 20px;
+      line-height: 1.2em;
+      position: relative;
+      margin-left: 50px;
+      color: #808080;
+      transition: 0.3s !important;
+    }
+
+    .time {
+      position: absolute;
+      left: -50px;
+      color: red;
+      font-size: 0.8em;
+      cursor: pointer;
+      color: #566BB3;
+      text-transform: capitalize;
+      font-variant: small-caps;
+      text-weight: 600;
+      user-select: none;
+    }
+
+    p.active > .time {
+      color: #d33682;
+      transition: 1s;
+    }
+
+    p.active {
+      color: #000000 !important;
+    }
+
+    :not(span) {
+      .is-opaque p {
+        color: #fff !important;
+      }
+    }
+
+    .button-1 {
+      background-color: #f6d7e6;
+      border-radius: 8px;
+      border-style: none;
+      box-sizing: border-box;
+      color: #FFFFFF;
+      cursor: pointer;
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 500;
+      height: 40px;
+      line-height: 20px;
+      list-style: none;
+      margin: 0;
+      outline: none;
+      padding: 10px 16px;
+      position: fixed;
+      text-align: center;
+      text-decoration: none;
+      transition: color 100ms;
+      vertical-align: baseline;
+      user-select: none;
+      touch-action: manipulation;
+      top: 20px;
+      left: 30px;
+      border: 1px black solid;
+    }
+
+    .button-1:hover {
+      background-color: #d33682;
+    }
+
+    .is-triggered {
+      background-color: #d33682 !important;  
+    }
+
+    .controls {
+      user-select: none;
+      touch-action: manipulation;
+      position: fixed;
+      top: 80px;
+      left: 30px;
+      width: 240px;
+      text-align: justify;
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px black solid;
+      color: #555;
+    }
+
+    @media only screen and (max-width: 1400px) {
+      .controls {
+        display: none;
+      }
+    }
+
+  </style>
+  <script>
+    function seekAudio(seconds) {
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+
+      const audio = document.getElementById("myAudio");
+      audio.currentTime = seconds;
+
+      window.scrollTo(scrollX, scrollY);
+    }
+
+    function updatePostion() {
+      const audio = document.getElementById("myAudio");
+      const timeElem = [...document.getElementsByClassName('transcript')];
+
+      let curElem = null;
+      for (let i = 0; i < timeElem.length; i++) {
+        timeElem[i].classList.remove('active');
+        const time = Number(timeElem[i].dataset.time);
+        if (audio.currentTime < time) {
+          curElem = timeElem[i - 1];
+          break;
+        }
+      }
+
+      // add active class and scroll to element
+      if (curElem !== null) {
+        curElem.classList.add('active');
+        if (!audio.paused) {
+          const dist = curElem.getBoundingClientRect().top + window.scrollY;
+          window.scroll({top: dist - 250, left: 0, behavior: "smooth"});          
+        }
+      }
+    }
+
+    let hiddenFlag = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // seek behavior for the PDF
+      const timeElem = [...document.getElementsByClassName('time')];
+      for (let i = 0; i < timeElem.length; i++) {
+        timeElem[i].addEventListener(
+          "click", (e) => {
+            seekAudio(Number(timeElem[i].dataset.time));
+          }
+        );
+      }
+
+      // set the position of the page based on the time of the audio
+      const repeat = setInterval(updatePostion, 250);
+
+      // hover effects on the button
+      const cont = document.getElementById('conteneur');
+
+      // key controls for the audio
+      const audio = document.getElementById("myAudio");
+      audio.muted = false;
+      //audio.play();
+      document.addEventListener(
+        "keydown", (e) => {
+          if (e.key === "j") {
+            if (audio.paused) {
+              audio.play();
+              hiddenFlag = true;
+              cont.classList.add('is-opaque');
+            } else {
+              audio.pause();
+              hiddenFlag = false;
+              cont.classList.remove('is-opaque');
+            }
+          }
+          if (e.key === "ArrowLeft") {
+            const activeElem = document.getElementsByClassName('active')[0];
+            const gotoElem = activeElem.previousElementSibling;
+            if (gotoElem) {
+              seekAudio(Number(gotoElem.dataset.time));
+            } else {
+              seekAudio(0);
+            }
+          }
+          if (e.key === "ArrowRight") {
+            const activeElem = document.getElementsByClassName('active')[0];
+            const gotoElem = activeElem.nextElementSibling;
+            if (gotoElem) {
+              seekAudio(Number(gotoElem.dataset.time));
+            } else {
+              seekAudio(activeElem.dataset.time);
+            }
+          }
+        }
+      );
+    });
+  </script>
+
+
+  <title>Transcript</title>
+
+</head>
+  <body>
+
+    <div id="audioCon">
+      <audio id="myAudio" controls>
+        <source src="{{ mp3 }}" type="audio/mpeg">
+      </audio>
+    </div>
+
+    <div id="conteneur">
+      {% for seg in segments %}
+        <p class="transcript" data-time="{{seg.start}}">
+          <span class="time" data-time="{{seg.start}}">{{seg.time}}</span> {{seg.text}}
+        </p>
+      {% endfor %}
+    </div>
+
+  </body>
+</html>

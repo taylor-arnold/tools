@@ -1,0 +1,41 @@
+[project]
+name = "yt"
+version = "0.1.0"
+description = "Transcript Visualization"
+requires-python = ">=3.13"
+dependencies = [
+    "audioop-lts>=0.2.1",
+    "click>=8.0.0",
+    "colorama>=0.4.0",
+    "jinja2>=3.1.6",
+    "openai>=1.86.0",
+    "pydub>=0.25.1",
+]
+
+[project.scripts]
+yt = "yt.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "ISC", "PIE", "T20", "Q"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--cov=yt --cov-report=term-missing"
