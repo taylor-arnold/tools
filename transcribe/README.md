@@ -7,7 +7,7 @@ writing swift code, which I have absolutely no experience with.
 To install the software, simply run the following:
 
 ```bash
-swiftc transcribe.swift -o transcribe
+swiftc transcribe.swift -parse-as-library
 sudo mv transcribe /usr/local/bin/
 ```
 
