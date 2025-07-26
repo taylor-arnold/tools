@@ -260,8 +260,7 @@ def push(ctx: click.Context, remote: str) -> None:
             "-avz",
             "-e",
             f"ssh -p {remote_port}",
-            "--include='.gitignore'",
-            "--exclude='.*'",
+            '--exclude=".[!.]*"',
             f"{str(Path.cwd() / local_ref_path) + '/'}",
             f"{remote_user}@{remote_url}:{remote_base_path}",
         ]
@@ -347,8 +346,7 @@ def pull(ctx: click.Context, remote: str, filename: str) -> None:
             "-avz",
             "-e",
             f"ssh -p {remote_port}",
-            "--include='.gitignore'",
-            "--exclude='.*'",
+            '--exclude=".[!.]*"',
             files_to_grab,
             f"{str(Path.cwd() / local_ref_path) + '/'}",
         ]
