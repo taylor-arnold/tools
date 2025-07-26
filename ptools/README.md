@@ -17,20 +17,6 @@
 
 ```
 
-To create a Python environment that can run this CLI (and others)
-directly anywhere on your machine, use the following code:
-
-```
-  uv venv ~/.local/uv-tools
-  source ~/.local/uv-tools/bin/activate
-  python -m ensurepip --upgrade
-  python3 -m pip install --upgrade pip
-  python3 -m pip install yt-dlp
-
-  python3 -m pip install git+https://github.com/taylor-arnold/ptools.git
-
-  export PATH="$HOME/.local/uv-tools/bin:$PATH"
-```
 
 ## Shell Autocompletion
 
