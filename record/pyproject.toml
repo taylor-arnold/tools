@@ -1,0 +1,20 @@
+[project]
+name = "pyrecord"
+version = "0.1.0"
+description = "Audio recording and metrics"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "colorama>=0.4.6",
+    "matplotlib>=3.10.3",
+    "numpy>=2.3.0",
+    "praat-parselmouth>=0.4.6",
+    "sounddevice>=0.5.2",
+]
+
+[project.scripts]
+pyrecord = "pyrecord.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
