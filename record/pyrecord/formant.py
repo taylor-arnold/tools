@@ -195,18 +195,18 @@ def plot_formants_with_words(times, f1_values, f2_values,
     plt.close()
 
 
-def plot_formats():
+def plot_formats(json_file="output.json", wav_file="output.wav", output_pdf="output.pdf"):
 
-    with open("output.json", 'r') as file:
+    with open(json_file, 'r') as file:
         data = json.load(file)
 
     startTime = [x['startTime'] for x in data['segments']]
     endTime = [x['endTime'] for x in data['segments']]
     wordVal = [x['text'] for x in data['segments']]
 
-    times, f1, f2 = extract_f1_f2_confident("output.wav")
+    times, f1, f2 = extract_f1_f2_confident(wav_file)
     plot_formants_with_words(
-        times, f1, f2, startTime, endTime, wordVal, output_pdf="output.pdf"
+        times, f1, f2, startTime, endTime, wordVal, output_pdf=output_pdf
     )
 
 

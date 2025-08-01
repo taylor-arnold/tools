@@ -9,6 +9,8 @@ import wave
 import json
 import os
 import shutil
+import tempfile
+import atexit
 
 from colorama import Fore, Style, init
 import numpy as np
@@ -27,7 +29,7 @@ def clear_terminal():
 
 
 class AudioRecorder:
-    def __init__(self):
+    def __init__(self, save_persistent=False):
         """
         Initialize the recorder with Whisper model loaded once.
         """
@@ -36,6 +38,18 @@ class AudioRecorder:
         clear_terminal()
         print(f"{Style.DIM}Recording from: [{idx_in}] {info['name']}")
         self.transcriber = AudioTranscriber()
+        self.save_persistent = save_persistent
+        
+        if not save_persistent:
+            # Create temporary directory for non-persistent files
+            self.temp_dir = tempfile.mkdtemp()
+            self.wav_file = os.path.join(self.temp_dir, "output.wav")
+            self.json_file = os.path.join(self.temp_dir, "output.json")
+            # Register cleanup function
+            atexit.register(self._cleanup_temp_files)
+        else:
+            self.wav_file = "output.wav"
+            self.json_file = "output.json"
 
 
     def record_audio(self, sample_rate=44100, channels=1, dtype=np.int16):
@@ -94,7 +108,7 @@ class AudioRecorder:
         audio_data = np.concatenate(recorded_audio, axis=0)
 
         # Save as WAV file (overwrite existing)
-        with wave.open("output.wav", "wb") as wf:
+        with wave.open(self.wav_file, "wb") as wf:
             wf.setnchannels(channels)
             wf.setsampwidth(np.dtype(dtype).itemsize)
             wf.setframerate(sample_rate)
@@ -107,8 +121,8 @@ class AudioRecorder:
 
     def record_and_transcribe(self):
         if self.record_audio():
-            self.transcriber.transcribe("output.wav", "output.json")
-            self.transcriber.message("output.json")
+            self.transcriber.transcribe(self.wav_file, self.json_file)
+            self.transcriber.message(self.json_file)
 
 
     def _clear_input_buffer(self):
@@ -148,27 +162,33 @@ class AudioRecorder:
 
                 elif user_input == "s":
                     stime = datetime.now().strftime('%Y%m%dT%H%M%S')
-                    shutil.copy('output.json', f'cache/output-{stime}.json')
-                    shutil.copy('output.wav', f'cache/output-{stime}.wav')
+                    shutil.copy(self.json_file, f'cache/output-{stime}.json')
+                    shutil.copy(self.wav_file, f'cache/output-{stime}.wav')
                     clear_terminal()
                     print(f"{Style.DIM}Saved file as cache/output-{stime}.wav")
-                    self.transcriber.message("output.json")
+                    self.transcriber.message(self.json_file)
 
                 elif user_input == "p":
                     try:
                         clear_terminal()
-                        self.transcriber.message("output.json")
-                        subprocess.run(["afplay", "output.wav"], check=True)
+                        self.transcriber.message(self.json_file)
+                        subprocess.run(["afplay", self.wav_file], check=True)
 
                     except subprocess.CalledProcessError:
-                        print(f"{Style.DIM}Error: Could not play `output.wav`")
+                        print(f"{Style.DIM}Error: Could not play `{self.wav_file}`")
 
                     except FileNotFoundError:
                         print(f"{Style.DIM}Error: afplay command not found (macOS required)")
 
                 elif user_input == "f":
-                    plot_formats()
-                    subprocess.run(["open", "output.pdf"], check=True)
+                    if self.save_persistent:
+                        plot_formats(self.json_file, self.wav_file, "output.pdf")
+                        subprocess.run(["open", "output.pdf"], check=True)
+                    else:
+                        # For temporary files, create PDF in temp directory
+                        pdf_file = os.path.join(self.temp_dir, "output.pdf")
+                        plot_formats(self.json_file, self.wav_file, pdf_file)
+                        subprocess.run(["open", pdf_file], check=True)
 
                 else:
                     clear_terminal()
@@ -180,3 +200,8 @@ class AudioRecorder:
 
             except Exception as e:
                 print(f"{Style.DIM}Error: {e}")
+
+    def _cleanup_temp_files(self):
+        """Clean up temporary files and directory when not using persistent storage"""
+        if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):
+            shutil.rmtree(self.temp_dir)

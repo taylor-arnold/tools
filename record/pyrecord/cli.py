@@ -9,11 +9,16 @@ def main():
     parser = argparse.ArgumentParser(
         description="Interactive audio recorder and transcriber with Whisper"
     )
+    parser.add_argument(
+        "--save", "-s",
+        action="store_true",
+        help="Save output files (output.json and output.wav) persistently instead of using temporary files"
+    )
 
     args = parser.parse_args()
 
     try:
-        recorder = AudioRecorder()
+        recorder = AudioRecorder(save_persistent=args.save)
         recorder.run_interactive()
 
     except KeyboardInterrupt:
