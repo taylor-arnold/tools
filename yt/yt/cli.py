@@ -17,7 +17,7 @@ client = OpenAI()
 
 
 def format_duration(seconds):
-    seconds = int(seconds)  # ensure it's an integer
+    seconds = int(seconds)
 
     hours, remainder = divmod(seconds, 3600)
     minutes, secs = divmod(remainder, 60)
@@ -31,9 +31,14 @@ def format_duration(seconds):
 def create_output(html_path, mp3_path, segments) -> None:
 
     for i in range(1, len(segments)):
+
+        segments[i]["start"] = segments[i]["start"] + segments[i]["offset"]
         segments[i]["time"] = format_duration(segments[i]["start"])
 
-    env = Environment(loader=FileSystemLoader("/Users/admin/gh/tools/yt/data/"), autoescape=True)
+    env = Environment(
+        loader=FileSystemLoader("/Users/admin/gh/tools/yt/data/"),
+        autoescape=True
+    )
     template = env.get_template("template.html")
     output = template.render(
         segments=segments,
@@ -57,7 +62,7 @@ def get_segment_format(json_path):
         data = json.load(f)
 
     segments = []
-    current = {"start": data[0]["start"], "text": data[0]["text"]}
+    current = data[0]
 
     for i in range(1, len(data)):
         prev = data[i - 1]
@@ -66,10 +71,11 @@ def get_segment_format(json_path):
         text_ends_cleanly = prev["text"].strip().endswith((".", "!", "?"))
         time_is_continuous = prev["end"] == curr["start"]
 
-        if text_ends_cleanly and time_is_continuous:
+        #if text_ends_cleanly and time_is_continuous:
+        if True:
             # Start a new segment
             segments.append(current)
-            current = {"start": curr["start"], "text": curr["text"]}
+            current = curr
         else:
             # Merge with current segment
             current["text"] += " " + curr["text"]

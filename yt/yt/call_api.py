@@ -6,7 +6,9 @@ import openai
 from pydub import AudioSegment
 
 
-def transcribe_long_audio(mp3_path: Path, language: str = "fr", model: str = "whisper-1") -> dict:
+def transcribe_long_audio(
+    mp3_path: Path, language: str = "fr", model: str = "whisper-1"
+) -> dict:
     # Load the audio
     audio = AudioSegment.from_file(mp3_path)
 

@@ -313,6 +313,15 @@
               cont.classList.remove('is-opaque');
             }
           }
+          if (e.key === "f") {
+            hiddenFlag = false;
+            cont.classList.remove('is-opaque');
+            if (audio.paused) {
+              audio.play();
+            } else {
+              audio.pause();              
+            }
+          }
           if (e.key === "ArrowLeft") {
             const activeElem = document.getElementsByClassName('active')[0];
             const gotoElem = activeElem.previousElementSibling;
