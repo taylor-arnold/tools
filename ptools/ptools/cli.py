@@ -126,6 +126,7 @@ def run_latex_workflow(tex_file: Path, latex_cmd: str) -> None:
         f"{base_name}.run.xml",
         f"{base_name}.snm",
         f"{base_name}.vrb"
+        f"{base_name}.xdv"
     ]
     
     for pattern in cleanup_patterns:
